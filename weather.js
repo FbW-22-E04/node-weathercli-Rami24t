@@ -38,7 +38,7 @@ output+=(`
 ☼ ☀   RAMI'S    WEATHER    APP    ✺ ϟ
 ☼ ☀ ☁ ☂ ☃ ☄ ☾ ☽ ❄ ☇ ☈ ⊙ ☉ ℃ ℉ ° ❅ ✺ ϟ
 
-It is now ${response.data.main.temp}°C in ${response.data.name}.
+It is now ${response.data.main.temp}${(units==='metric'?'°C': units ==='imperial' ? '°F': '°K')} in ${response.data.name}.
 
 The current weather conditions are: ${response.data.weather[0].description}
 
@@ -47,7 +47,7 @@ The current weather conditions are: ${response.data.weather[0].description}
 );
 output+=('City: '+ response.data.name);
 output+=(' | ');
-output+=('Temp: '+response.data.main.temp);
+output+=('Temp: '+response.data.main.temp + (units==='metric'?'°C': units ==='imperial' ? '°F': '°K'));
 output+=(' | ');
 output+=('Weather: '+response.data.weather[0].description);
 
