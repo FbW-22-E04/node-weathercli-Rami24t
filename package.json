@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Get the latest weather report - from your terminal!",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
