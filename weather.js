@@ -1,80 +1,81 @@
 import { config } from 'dotenv';
 import axios from 'axios';
+import chalk from 'chalk';
 
 config();
 const apiKey = process.env.KEY;
 
 const city = process.argv[2];
-if(!city){
-    console.log('Please enter a city name');
-    process.exit();
-}
-
 
 let units = 'metric';
-if(process.argv[3] === 'imperial' || process.argv[3] === 'standard'){
-    units = process.argv[3];
+if (process.argv[3] === 'imperial' || process.argv[3] === 'standard') {
+  units = process.argv[3];
 }
 
+const currentWeatherUrl = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=${units}&appid=${apiKey}`;
+const forecastUrl = `http://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${units}&appid=${apiKey}`;
 
-const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=${units}&appid=${apiKey}`;
+const fetchWeatherData = async (url) => {
+  try {
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching weather data:', error.message);
+    process.exit(1);
+  }
+};
 
-//  api.openweathermap.org/data/2.5/weather?id=524901&appid=YOUR_API_KEY
+const getFormattedTemperature = (temp) => {
+  if (units === 'metric') {
+    return `${temp}°C`;
+  } else if (units === 'imperial') {
+    return `${temp}°F`;
+  } else {
+    return `${temp}°K`;
+  }
+};
 
-const response = await axios.get(url);
+const printCurrentWeather = (data) => {
+  const city = data.name;
+  const temperature = getFormattedTemperature(data.main.temp);
+  const description = data.weather[0].description;
 
-// output+=(response.data);
+  console.log(chalk.bold('\n☼ ☀ ☁ ☂ ☃ ☄ ☾ ☽ ❄ ☇ ☈ ⊙ ☉ ℃ ℉ ° ❅ ✺ ϟ'));
+  console.log(chalk.bold.yellow('\n\t\tRAMI\'S WEATHER APP'));
+  console.log(chalk.bold('\n☼ ☀ ☁ ☂ ☃ ☄ ☾ ☽ ❄ ☇ ☈ ⊙ ☉ ℃ ℉ ° ❅ ✺ ϟ\n'));
+  console.log(chalk.bold(`It is now ${temperature} in ${city}.`));
+  console.log(chalk.bold(`The current weather conditions are: ${description}\n`));
+};
 
-// Read through the returned data from your API and display;
-// 1 - The city name
-// 2 - The current temperature
-// 3 - The current weather conditions
-// > Hint: You might also like to consider using the [colors.js](https://github.com/Marak/colors.js) library to make your output fabulous 🤩! 
-// 4- Your program should be also able to;
-// 5- Display a 5-day forecast
-// - Allow the user to switch between **metric** and **imperial** measurements
+const printForecast = (data) => {
+  const city = `${data.city.country}-${data.city.name}`;
+  console.log(chalk.bold(`\n${city} 5-day weather forecast:\n`));
 
-let output='';
+  const forecastList = data.list;
+  let currentDate = '';
 
+  forecastList.forEach((forecast) => {
+    const dateTime = forecast.dt_txt;
+    const date = dateTime.slice(8, 10);
+    const time = dateTime.slice(11, 16);
+    const temperature = getFormattedTemperature(forecast.main.temp);
+    const description = forecast.weather[0].description;
 
-output+=(`
-☼ ☀ ☁ ☂ ☃ ☄ ☾ ☽ ❄ ☇ ☈ ⊙ ☉ ℃ ℉ ° ❅ ✺ ϟ
-☼ ☀   RAMI'S    WEATHER    APP    ✺ ϟ
-☼ ☀ ☁ ☂ ☃ ☄ ☾ ☽ ❄ ☇ ☈ ⊙ ☉ ℃ ℉ ° ❅ ✺ ϟ
+    if (date !== currentDate) {
+      currentDate = date;
+      console.log(chalk.bold(`- Date: ${date}/${dateTime.slice(5, 7)}/${dateTime.slice(0, 4)}\n`));
+    }
 
-It is now ${response.data.main.temp}${(units==='metric'?'°C': units ==='imperial' ? '°F': '°K')} in ${response.data.name}.
+    console.log(`${chalk.bold('Time:')} ${time} | ${chalk.bold('Temp:')} ${temperature} | ${chalk.bold('Weather:')} ${description}\n`);
+  });
+};
 
-The current weather conditions are: ${response.data.weather[0].description}
+const startWeatherApp = async () => {
+  const currentWeatherData = await fetchWeatherData(currentWeatherUrl);
+  const forecastData = await fetchWeatherData(forecastUrl);
 
+  printCurrentWeather(currentWeatherData);
+  printForecast(forecastData);
+};
 
-`
-);
-output+=('City: '+ response.data.name);
-output+=(' | ');
-output+=('Temp: '+response.data.main.temp + (units==='metric'?'°C': units ==='imperial' ? '°F': '°K'));
-output+=(' | ');
-output+=('Weather: '+response.data.weather[0].description);
-
-// 5-day forecast
-const url2 = `http://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${units}&appid=${apiKey}`;
-const response2 = await axios.get(url2);
-// output+=(response2.data);
-output+=(`\n\n${response2.data.city.country}-${response2.data.city.name} 5-day weather forecast:\n\n- Today:\n`);
-
-for(let i = 0; i < response2.data.list.length; i++) {
-    if(response2.data.list[i].dt_txt.includes('00:00:00'))
-    output+=(`\n- Date: ${response2.data.list[i].dt_txt.slice(8, 10)}/${response2.data.list[i].dt_txt.slice(5, 7)}/${response2.data.list[i].dt_txt.slice(0, 4)}:\n`);
-
-    output+=('Time: ',response2.data.list[i].dt_txt.slice(11,16));
-output+=(' | ');
-
-    output+=('Temp: '+response2.data.list[i].main.temp + (units==='metric'?'°C': units ==='imperial' ? '°F': '°K'));
-output+=(' | ');
-
-    // output+=(response2.data.list[i].main);
-    // output+=(response2.data.list[i].weather[0].main);
-    output+=('Weather: '+response2.data.list[i].weather[0].description);
-    output+=('\n');
-}
-// output+=(response.data, response2.data);
-console.log(output);
+startWeatherApp();
