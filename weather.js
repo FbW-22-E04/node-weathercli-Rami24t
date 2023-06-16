@@ -5,6 +5,10 @@ config();
 const apiKey = process.env.KEY;
 
 const city = process.argv[2];
+if(!city){
+    console.log('Please enter a city name');
+    process.exit();
+}
 
 
 let units = 'metric';
